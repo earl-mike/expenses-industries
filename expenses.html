@@ -835,6 +835,10 @@ function setFilter(f,el){currentFilter=f;document.querySelectorAll('.chip').forE
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
+  // Hard timeout — if anything hangs, show sign-in after 6 seconds
+  const showSignIn=()=>{document.getElementById('loadingOverlay').style.display='none';document.getElementById('signInOverlay').style.display='flex';};
+  const hardTimeout=setTimeout(showSignIn, 6000);
+
   const tryInit=setInterval(()=>{
     if(typeof google==='undefined'||!google.accounts)return;
     clearInterval(tryInit);
@@ -843,12 +847,15 @@ window.addEventListener('load',()=>{
     if(savedEmail){
       document.getElementById('userChip').textContent=savedEmail;
       tokenClient.callback=async resp=>{
-        if(resp.error){document.getElementById('loadingOverlay').style.display='none';document.getElementById('signInOverlay').style.display='flex';return;}
+        clearTimeout(hardTimeout);
+        if(resp.error){showSignIn();return;}
         accessToken=resp.access_token;tokenExpiry=Date.now()+((resp.expires_in-60)*1000);
         await loadSheetData();
       };
-      tokenClient.requestAccessToken({prompt:'none'});
-    }else{document.getElementById('loadingOverlay').style.display='none';document.getElementById('signInOverlay').style.display='flex';}
+      // Also set a token-specific timeout in case requestAccessToken never calls back
+      setTimeout(()=>{if(!accessToken)showSignIn();},5000);
+      try{tokenClient.requestAccessToken({prompt:'none'});}catch(e){showSignIn();}
+    }else{clearTimeout(hardTimeout);showSignIn();}
   },200);
 });
 </script>
