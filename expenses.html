@@ -374,7 +374,7 @@ const formatDate=d=>{
     const dt=new Date(d);
     if(isNaN(dt.getTime()))return{day:d.slice(0,2)||'',mon:''};
     return{day:String(dt.getDate()),mon:dt.toLocaleString('default',{month:'short'}).toUpperCase()};
-  }catch(e){return{day:'',mon:'';};}
+  }catch(e){return{day:'',mon:''};;}
 };
 
 // ── AUTH ──────────────────────────────────────────────────────────────────
